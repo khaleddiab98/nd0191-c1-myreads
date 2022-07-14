@@ -23,13 +23,19 @@ const SearchBooks = () => {
     const searchShelf = async (query) =>{
         setQuery(query);
 
-        if(query != ""){
+       
+
+        if(query != null){
             const res = await BooksAPI.search(query.trim());
             setSearchList(res);
+            
         }
         
         else
-            setSearchList([]);
+            setSearchList();
+
+        console.log(searchList);
+        
     }
 
     const changeShelf = async (book, shelf) =>{
@@ -64,7 +70,7 @@ const SearchBooks = () => {
           </div>
           <div className="search-books-results">
             <ol className="books-grid">
-                {searchList != null ? 
+                {searchList != undefined ? 
                 (searchList.map((book, index) => {
                         return (
                             <li key = {index} className = "books-grid li">
