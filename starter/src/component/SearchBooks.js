@@ -1,42 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import * as BooksAPI from '../BooksAPI';
 import { Link } from 'react-router-dom';
 
-const SearchBooks = () => {
+const SearchBooks = ({ BookList, updateShelf, Shelves }) => {
 
     const [query, setQuery] = useState("");
     const [searchList, setSearchList] = useState([]);
-    const [bookList, setBookList] = useState([]);
 
-    useEffect(() => {
-        const loadBooks = async () => {
-            const res = await BooksAPI.getAll();
 
-            setBookList(res);
-        };
-
-        loadBooks();
-    }, []);
 
     const searchShelf = async (query) => {
         setQuery(query);
 
-        if (query != null) {
-            const res = await BooksAPI.search(query);
-            setSearchList(res);
+        if (query === "") {
+            setSearchList([]);
         }
 
-        else
-            setSearchList();
+        else {
+            await BooksAPI.search(query).then(res => {
+
+                if (res !== undefined & !res.error)
+                    setSearchList(res);
+
+                else setSearchList([]);
+
+            });
+        }
     }
 
-    const changeShelf = async (book, shelf) => {
-
-        const res = await BooksAPI.update(book, shelf);
-    }
 
     const findShelf = (book) => {
-        const b = bookList.find(element => element.id === book.id);
+        const b = BookList.find(element => element.id === book.id);
 
         return b.shelf;
     }
@@ -56,13 +50,13 @@ const SearchBooks = () => {
                             type="text"
                             placeholder="Search by title, author, or ISBN"
                             value={query}
-                            onChange={(e) => searchShelf(e.target.value)}
+                            onChange={(e) => { searchShelf(e.target.value) }}
                         />
                     </div>
                 </div>
                 <div className="search-books-results">
                     <ol className="books-grid">
-                        {searchList !== undefined ?
+                        {searchList !== null ?
                             (searchList.map((book, index) => {
                                 return (
 
@@ -81,8 +75,8 @@ const SearchBooks = () => {
                                                 ></div>
                                                 <div className="book-shelf-changer">
                                                     {
-                                                        bookList.find(element => element.id === book.id) ? (
-                                                            <select className="book-shelf-changer select" value={findShelf(book)} onChange={(e) => changeShelf(book, e.target.value)}>
+                                                        BookList.find(element => element.id === book.id) ? (
+                                                            <select className="book-shelf-changer select" value={findShelf(book)} onChange={(e) => updateShelf(book, e.target.value)}>
                                                                 <option value="label" disabled>
                                                                     Move to...
                                                                 </option>
@@ -94,7 +88,7 @@ const SearchBooks = () => {
                                                                 <option value="none">None</option>
                                                             </select>
                                                         ) : (
-                                                            <select className="book-shelf-changer select" defaultValue="none" onChange={(e) => changeShelf(book, e.target.value)}>
+                                                            <select className="book-shelf-changer select" defaultValue="none" onChange={(e) => updateShelf(book, e.target.value)}>
                                                                 <option value="label" disabled>
                                                                     Add to...
                                                                 </option>
@@ -110,14 +104,13 @@ const SearchBooks = () => {
                                                 </div>
                                             </div>
                                             <div className="book-title">{book.title}</div>
-                                            <div className="book-title">{book.shelf}</div>
                                             <div className="book-authors">{book.authors}</div>
+                                            <div className="book-title">{book.shelf === undefined ? "" : book.shelf === "none" ? ("Book removed") : (`Book added to ${Shelves.find(shelf => shelf.name === book.shelf).displayName} shelf`)}</div>
                                         </div>
 
                                     </li>)
                             }
                             )) : (<div></div>)}
-
                     </ol>
                 </div>
             </div>
